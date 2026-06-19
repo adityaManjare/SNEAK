@@ -2,3 +2,6 @@ requests
 bs4
 lxml
 nltk
+fastapi
+uvicorn
+sqlalchemy # orm
