@@ -1,13 +1,5 @@
-import re
-from nltk.stem import PorterStemmer
 
 
-
-helping_words = {
-    "a", "an", "the", "is", "are", "was", "were",
-    "of", "to", "in", "on", "at", "for", "by",
-    "and", "or", "but", "if", "then", "this", "that"
-}
 
 
 
@@ -36,16 +28,5 @@ def extract_data(current_url , current_page):
 
 
 
-def calc_wordFreq(body_text):
-    word_arr = re.findall(r"\b[a-zA-Z]+\b", body_text)
-    stemmer = PorterStemmer()
-    word_freq = {}
-    for word in word_arr:
-        word = word.lower()
-        word = stemmer.stem(word)
-        if word not in helping_words:
-            if word not in word_freq:
-                word_freq[word] = 0
-            word_freq[word] += 1
-    return word_freq
+
 
