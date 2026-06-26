@@ -4,6 +4,9 @@ from nltk.stem import PorterStemmer
 from database import session_local
 from sqlalchemy.orm import Session
 import Models
+import struct
+import json
+
 
 helping_words = {
     "a", "an", "the", "is", "are", "was", "were",
@@ -20,6 +23,12 @@ class Posting:
             self.positions = []
         else:
             self.positions = positions
+    def __repr__(self):
+        return(
+            f"Posting( doc_id = {self}, "
+            f"term_freq = {self.term_freq} "
+            f"positions = {self.positions} )"
+        )
 
 def tokenize(text : str):
     tokens = []
@@ -34,41 +43,55 @@ def tokenize(text : str):
         
 
 def buildIndex(db : Session):
-    index = {}
+    dictionary = {}
     docs = db.query(Models.webPage).all()
     for doc in docs:
         text = doc.title + " " + doc.body
         tokens = tokenize(text)
         for pos , term in enumerate(tokens):
-            if term not in index:
-                index[term] = []
-            postings = index[term]
-            if len(postings) == 0 or postings[-1].doc_id != doc.id: # you have to create a new post
+            if term not in dictionary:
+                dictionary[term] = []
+            postings = dictionary[term]
+            if len(postings) == 0 or postings[-1] != doc.id: # you have to create a new post
                 new_post = Posting(doc.id )
                 postings.append(new_post)
             post = postings[-1]
             post.term_freq += 1
             post.positions.append(pos)
-    return index
+    return dictionary
 
 
 
-db = session_local()
 
-try:
-    index = buildIndex(db)
-finally:
-    db.close()
 
-for term in sorted(index.keys()):
-    print(f"\nTERM:{term}")
-    for post in index[term]:
-        print(
-            f"\ndoc = {post.doc_id} "
-            f"\nterm frequency = {post.term_freq} "
-            f"\npositions = {post.positions} "
-        )
+# db = session_local()
+# try:
+#     dictionary = buildIndex(db)
+# finally:
+#     db.close()
 
+
+
+
+
+
+
+def store_in_disk(dictionary):
+    with open("postings.bin", "wb") as post_file:
+        index = {}
+        for term in sorted(dictionary.keys()):
+            offset = post_file.tell()
+            index[term] = offset
+            postings = dictionary[term]
+            post_file.write(struct.pack("I",len(postings)))
+            for post in postings:
+                post_file.write(struct.pack("I",post))
+                post_file.write(struct.pack("I",post.term_freq))
+                for pos in post.positions:
+                    post_file.write(struct.pack("I",pos))
+
+    with open("index.json","w") as file:
+        json.dump(index,file)
 
 
 
