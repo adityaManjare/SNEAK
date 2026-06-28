@@ -223,3 +223,4 @@ app.db
 
 index.json
 postings.bin
+doc_lenghts.json

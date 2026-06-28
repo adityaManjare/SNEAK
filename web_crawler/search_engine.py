@@ -1,185 +1,64 @@
-import struct
-from web_crawler.index_builder import Posting
+
 import json
+from web_crawler.bool_search import bool_search
+from web_crawler.phrase_search import phrase_search
+from web_crawler.ranking import tf_idf
+
+
+
 
 with open("index.json") as f:
     index = json.load(f)
 
 
-def read_postings(term : str , index ):
-    if term not in index:
-        return []
-    offset = index[term]
-    docs = []
-    with open("postings.bin","rb") as postings:
-        postings.seek(offset)
-        doc_freq = struct.unpack("I",postings.read(4))[0]
-        for _ in range(doc_freq):
-            doc_id = struct.unpack("I",postings.read(4))[0]
-            term_freq = struct.unpack("I",postings.read(4))[0]
-            positions = []
-            for _ in range(term_freq):
-                positions.append(struct.unpack("I",postings.read(4))[0])
-            docs.append(Posting(doc_id , positions , term_freq))
-    return docs
+with open("doc_lenghts.json") as f:
+    doc_lengths = json.load(f)
+
+doc_lengths = {int(k): v for k, v in doc_lengths.items()}
+
+total_docs = len(doc_lengths)
+
+
+   
 
 
 
 
-def bool_and(a ,b ): # here i a and b are lists 
-    ans = []
-    i = j = 0
-    while i < len(a) and j < len(b):
-        if a[i] == b[j]:
-            ans.append(a[i])
-            i += 1 
-            j += 1
-        elif a[i] < b[j]:
-            i += 1
-        else:
-            j += 1
-    return ans
-
-def bool_or(a,b):
-    ans = []
-    i = j = 0
-    while i < len(a) and j < len(b):
-        if a[i] == b[j]:
-            ans.append(a[i])
-            i += 1 
-            j += 1
-        elif a[i] < b[j]:
-            ans.append(a[i])
-            i += 1
-        else:
-            ans.append(b[j])
-            j += 1
-    while i < len(a) :
-        ans.append(a[i])
-        i += 1
-    while j < len(b) :
-        ans.append(b[j])
-        j += 1
-    return ans
+BOOLEAN_OPERATORS = {"AND", "OR", "NOT"}
 
 
-def bool_not(a , b):
-    ans = []
-    i = j = 0
-    while i < len(a) and j < len(b):
-        if a[i] == b[j]:
-            i += 1 
-            j += 1
-        elif a[i] < b[j]:
-            ans.append(a[i])
-            i += 1
-        else:
-            j += 1
-    while i < len(a) :
-        ans.append(a[i])
-        i += 1
-    return ans
+def is_boolean_query(query):
+    return any(token.upper() in BOOLEAN_OPERATORS
+               for token in query.split())
 
 
+def is_phrase_query(query):
+    return '"' in query
 
 
-def bool_search(query:str):
-    tokens = query.split()
-    if not tokens:
-        return []
-    precedence = {
-        "NOT" : 2,
-        "AND" : 1,
-        "OR" : 0
-    }
-    oprtr = []
-    oprnd = []
-    for token in tokens:
-        if token in precedence :
-            while oprtr and precedence[oprtr[-1]] >= precedence[token]:
-                b = oprnd.pop()
-                a = oprnd.pop() 
-                op = oprtr.pop()
-                if op == "AND":
-                    c = bool_and(a,b)
-                elif op == "OR":
-                    c = bool_or(a,b)
-                else:
-                    c = bool_not(a,b)
-                oprnd.append(c)
-            oprtr.append(token)
-        else:
-            a = [x.doc_id for x in read_postings(token,index)]
-            oprnd.append(a)
-    while oprtr:
-        b = oprnd.pop()
-        a = oprnd.pop()
-        op = oprtr.pop()
-        if op == "AND":
-            c = bool_and(a,b)
-        elif op == "OR":
-            c = bool_or(a,b)
-        else:
-            c = bool_not(a,b)
-        oprnd.append(c)
-    return oprnd.pop()
+def search(query):
+    query = query.strip()
 
-
-
-def merge_positions(pos1, pos2):
-    i = j = 0
-    matched = []
-
-    while i < len(pos1) and j < len(pos2):
-
-        if pos2[j] == pos1[i] + 1:
-            matched.append(pos2[j])
-            i += 1
-            j += 1
-
-        elif pos1[i] + 1 < pos2[j]:
-            i += 1
-
-        else:
-            j += 1
-
-    return matched
-
-
-def phrase_search(query):
-    words = query.split()
-    if not words:
+    if not query:
         return []
 
-    postings = [read_postings(word, index) for word in words]
 
-    #yup similar to how we do list initialization 
-    current = {
-        p.doc_id: p.positions
-        for p in postings[0]
-    }
+    if is_boolean_query(query):
+        print("boolean search \n")
+        return bool_search(query, index)
 
-    for k in range(1, len(words)):
-        nxt = {
-            p.doc_id: p.positions
-            for p in postings[k]
-        }
-        new_current = {}
-        for doc in current:
+    if is_phrase_query(query):
+        print("phrase search \n")
+        phrase = query.replace('"', '')
+        return phrase_search(phrase, index)
+    
 
-            if doc not in nxt:
-                continue
-            matched = merge_positions(current[doc], nxt[doc])
-            if matched:
-                new_current[doc] = matched
-
-        current = new_current
-        if not current:
-            return []
-
-    return list(current.keys())
+    return tf_idf(query, index, doc_lengths, total_docs)
 
 
+print(search("hello world"))
+print(search('"love you"'))
+print(search("hello OR world"))
 
 
     # if len(tokens) == 1:
@@ -213,4 +92,4 @@ def phrase_search(query):
 # print(search("boy"))
 # print(search("girl"))
 # print(search("boy AND girl NOT dream"))
-print(phrase_search("love you"))
+# print(phrase_search("love you"))

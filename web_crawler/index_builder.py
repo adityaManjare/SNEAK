@@ -44,10 +44,12 @@ def tokenize(text : str):
 
 def buildIndex(db : Session):
     dictionary = {}
+    doc_lengths = {}
     docs = db.query(Models.webPage).all()
     for doc in docs:
         text = doc.title + " " + doc.body
         tokens = tokenize(text)
+        doc_lengths[doc.id] = len(tokens)
         for pos , term in enumerate(tokens):
             if term not in dictionary:
                 dictionary[term] = []
@@ -58,6 +60,9 @@ def buildIndex(db : Session):
             post = postings[-1]
             post.term_freq += 1
             post.positions.append(pos)
+
+    with open("doc_lenghts.json" , "w") as file:
+        json.dump(doc_lengths,file)
     return dictionary
 
 
@@ -74,8 +79,6 @@ def buildIndex(db : Session):
 
 
 
-
-
 def store_in_disk(dictionary):
     with open("postings.bin", "wb") as post_file:
         index = {}
@@ -85,7 +88,7 @@ def store_in_disk(dictionary):
             postings = dictionary[term]
             post_file.write(struct.pack("I",len(postings)))
             for post in postings:
-                post_file.write(struct.pack("I",post))
+                post_file.write(struct.pack("I",post.doc_id))
                 post_file.write(struct.pack("I",post.term_freq))
                 for pos in post.positions:
                     post_file.write(struct.pack("I",pos))
@@ -94,7 +97,7 @@ def store_in_disk(dictionary):
         json.dump(index,file)
 
 
-
+# store_in_disk(dictionary)
 
 
 
