@@ -1,4 +1,4 @@
-from web_crawler.postings_reader import read_postings
+from sneak.postings_reader import read_postings
 
 
 def bool_and(a ,b ): # here i a and b are lists 

@@ -220,7 +220,10 @@ __marimo__/
 
 
 app.db
-
+benchmark.py
 index.json
 postings.bin
+metadata.json
 doc_lenghts.json
+test.json
+url_to_docid.json

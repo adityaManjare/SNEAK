@@ -1,6 +1,6 @@
 
 import struct
-from web_crawler.index_builder import Posting
+from sneak.index_builder import Posting
 
 
 def read_postings(term : str , index ):

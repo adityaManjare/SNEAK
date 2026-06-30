@@ -8,6 +8,8 @@ import struct
 import json
 
 
+import os
+
 helping_words = {
     "a", "an", "the", "is", "are", "was", "were",
     "of", "to", "in", "on", "at", "for", "by",
@@ -29,6 +31,12 @@ class Posting:
             f"term_freq = {self.term_freq} "
             f"positions = {self.positions} )"
         )
+    def to_dict(self):
+        return {
+            "doc_id": self.doc_id,
+            "tf": self.term_freq,
+            "positions": self.positions
+        }
 
 def tokenize(text : str):
     tokens = []
@@ -44,12 +52,12 @@ def tokenize(text : str):
 
 def buildIndex(db : Session):
     dictionary = {}
-    doc_lengths = {}
+    # doc_lengths = {}
     docs = db.query(Models.webPage).all()
     for doc in docs:
         text = doc.title + " " + doc.body
         tokens = tokenize(text)
-        doc_lengths[doc.id] = len(tokens)
+        # doc_lengths[doc.id] = len(tokens)
         for pos , term in enumerate(tokens):
             if term not in dictionary:
                 dictionary[term] = []
@@ -61,8 +69,8 @@ def buildIndex(db : Session):
             post.term_freq += 1
             post.positions.append(pos)
 
-    with open("doc_lenghts.json" , "w") as file:
-        json.dump(doc_lengths,file)
+    # with open("doc_lenghts.json" , "w") as file:
+    #     json.dump(doc_lengths,file)
     return dictionary
 
 
@@ -98,9 +106,19 @@ def store_in_disk(dictionary):
 
 
 # store_in_disk(dictionary)
+# serializable = {
+#     term: [post.to_dict() for post in postings]
+#     for term, postings in dictionary.items()
+# }
+# with open("test.json","w") as file:
+#     json.dump(serializable,file,indent=4 )
 
-
-
+json_size = os.path.getsize("test.json")
+bin_size = os.path.getsize("postings.bin")
+# print(f"JSON Size   : {json_size / (1024 * 1024):.2f} MB")
+# print(f"Binary Size : {bin_size / (1024 * 1024):.2f} MB")
+# print(ind)
+# i had something as doc_lenghts json file which essentially was stroing the text length for each doc id and as per my implementation each url has a doc which has a doc id so should i genralize doc_len json file to store rank and outgoing links
 
 
 
