@@ -3,7 +3,8 @@ from Schemas import crawler_req
 from sneak.spider import spider
 from sneak.search_engine import search
 from sqlalchemy.orm import  Session
-from sneak.search_engine import cache
+from sneak.search_engine import cache # literally imported a object
+from sneak.BK_tree import BKTree
 import time
 import Models
 import database
@@ -17,12 +18,14 @@ app = FastAPI()
 
 Models.Base.metadata.create_all(bind=database.engine)
 
-from sqlalchemy import inspect
+# from sqlalchemy import inspect
 
-Models.Base.metadata.create_all(bind=database.engine)
+# Models.Base.metadata.create_all(bind=database.engine)
 
-inspector = inspect(database.engine)
-print("Tables:", inspector.get_table_names())
+# inspector = inspect(database.engine)
+# print("Tables:", inspector.get_table_names())
+
+
 
 
 @app.post('/dev/crawler')
