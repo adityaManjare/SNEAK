@@ -3,7 +3,7 @@ from Schemas import crawler_req
 from sneak.spider import spider
 from sneak.search_engine import search
 from sqlalchemy.orm import  Session
-from sneak.search_engine import cache # literally imported a object
+from sneak.search_engine import cache , autocomp # literally imported a object
 from sneak.BK_tree import BKTree
 import time
 import Models
@@ -37,8 +37,12 @@ def get_crawler(request : crawler_req , db : Session = Depends(database.get_db))
 
 @app.get("/search")
 def searchx(query: str):
-    results = search(query)
+    # with open("query_history.json","a") as f:
+    #     if query in f:
+    #         f[query] += 1
+    #     else:
 
+    results = search(query)
     return {
         "query": query,
         "results": [
@@ -52,6 +56,10 @@ def searchx(query: str):
 def cache_stats():
     return cache.stats()
 
+
+@app.get("/autocomplete")
+def func(query : str):
+    return autocomp.search(query)
 
 @app.get("/benchmark")
 def benchmark(query:str):

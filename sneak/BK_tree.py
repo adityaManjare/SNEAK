@@ -14,7 +14,7 @@ def edit_dist(word1 , word2):
             if word1[i-1] == word2[j-1]:
                 grid[i][j] = grid[i-1][j-1]
             else:
-                grid[i][j] = min(  grid[i-1][j] , grid[i][j-1] ,   grid[i-1][j-1]) + 1
+                grid[i][j] = min( grid[i-1][j] , grid[i][j-1] ,   grid[i-1][j-1]) + 1
     return grid[n-1][m-1]
 
 
@@ -57,15 +57,15 @@ class BKTree:
 
 
 
-import json
+# import json
 
 
-bk = BKTree()
+# bk = BKTree()
  
-with open("index.json") as f:
-    index = json.load(f)
+# with open("index.json") as f:
+#     index = json.load(f)
 
-for value , _ in index.items():
-    bk.insert(value)
+# for value , _ in index.items():
+#     bk.insert(value)
 
-print(bk.search("sneha" , 3))
+# print(bk.search("sneha" , 3))

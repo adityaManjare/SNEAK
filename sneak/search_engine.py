@@ -4,7 +4,8 @@ from sneak.bool_search import bool_search
 from sneak.phrase_search import phrase_search
 from sneak.tfidf import rank_tfidf
 from sneak.cache import LRUCache
-
+from sneak.index_builder import tokenize
+from sneak.autocomplete import autocomplete
 cache = LRUCache(1000)
 
 with open("index.json") as f:
@@ -38,8 +39,25 @@ def is_phrase_query(query):
     return '"' in query
 
 
+
+autocomp = autocomplete(2)
+
 def search(query):
     query = query.strip()
+    # for autocomplete
+    try:
+        with open("query_history.json","r") as file:
+            query_history = json.load(file)
+    except:
+        query_history = {}
+    if query in query_history:
+        query_history[query] += 1
+    else:
+        query_history[query] = 1
+    with open("query_history.json","w") as file:
+        json.dump(query_history,file)
+    autocomp.insert(query,query_history)
+    #
 
     cached = cache.get(query)
     
@@ -54,7 +72,7 @@ def search(query):
 
 
     if is_boolean_query(query):
-        # print("boolean search \n")
+         # print("boolean search \n")
         docs = bool_search(query, index)
         query = (
         query.replace("AND", " ").replace("OR", " ").replace("NOT", " "))

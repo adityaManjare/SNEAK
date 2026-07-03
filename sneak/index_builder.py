@@ -90,9 +90,11 @@ def buildIndex(db : Session):
 def store_in_disk(dictionary):
     with open("postings.bin", "wb") as post_file:
         index = {}
+        history = {}
         for term in sorted(dictionary.keys()):
             offset = post_file.tell()
             index[term] = offset
+            # history[term] = 0
             postings = dictionary[term]
             post_file.write(struct.pack("I",len(postings)))
             for post in postings:
@@ -103,7 +105,6 @@ def store_in_disk(dictionary):
 
     with open("index.json","w") as file:
         json.dump(index,file)
-
 
 # store_in_disk(dictionary)
 # serializable = {
