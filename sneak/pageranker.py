@@ -46,4 +46,3 @@ def rankPages():
     total = sum(info["pagerank"] for info in metadata.values())
     print(total)
 
-# rankPages()

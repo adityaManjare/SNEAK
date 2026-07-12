@@ -1,47 +1,30 @@
 from fastapi import FastAPI, Depends
 from Schemas import crawler_req
-from sneak.spider import spider
+from sneak.handler import call_everything
 from sneak.search_engine import search
 from sqlalchemy.orm import  Session
 from sneak.search_engine import cache , autocomp # literally imported a object
-from sneak.BK_tree import BKTree
+from sneak.handler import bk
 import time
 import Models
 import database
 
 
-
 app = FastAPI()
 
 
-
-
 Models.Base.metadata.create_all(bind=database.engine)
-
-# from sqlalchemy import inspect
-
-# Models.Base.metadata.create_all(bind=database.engine)
-
-# inspector = inspect(database.engine)
-# print("Tables:", inspector.get_table_names())
-
-
 
 
 @app.post('/dev/crawler')
 
 def get_crawler(request : crawler_req , db : Session = Depends(database.get_db)):
-    spider(request.url , request.depth , db)
-    return ("hogya print")
+    call_everything(request.url , request.depth , db)
+    return ("Successful")
 
 
 @app.get("/search")
 def searchx(query: str):
-    # with open("query_history.json","a") as f:
-    #     if query in f:
-    #         f[query] += 1
-    #     else:
-
     results = search(query)
     return {
         "query": query,
@@ -60,6 +43,11 @@ def cache_stats():
 @app.get("/autocomplete")
 def func(query : str):
     return autocomp.search(query)
+
+@app.get("/spellcorrect")
+def func(query : str):
+    return bk.search(query , 4)
+
 
 @app.get("/benchmark")
 def benchmark(query:str):

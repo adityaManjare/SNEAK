@@ -15,7 +15,7 @@ def spider(seed_url , depth , db : Session):
     is_vis.add(seed_url)
     queue.append(seed_url)
     for i in range(depth):
-            for _ in range(len(queue)): # level order traversal
+            for _ in range(len(queue)): 
                 current_url = queue.popleft()
                 try:
                     response = requests.get(current_url, timeout=4)
@@ -40,9 +40,6 @@ def spider(seed_url , depth , db : Session):
                     "pagerank": None,
                     "outgoing_links": urls
                 }
-                # print(f"url \n { doc.url }")
-                # print(f"title\n {doc.title}")
-                # print(f"body text \n {doc.body_text}")
                 for url in urls:
                     if url not in is_vis:
                         queue.append(url)
@@ -66,3 +63,5 @@ def spider(seed_url , depth , db : Session):
         json.dump(url_to_docId, f, indent=4)
     print("completed")
     return metadata
+
+

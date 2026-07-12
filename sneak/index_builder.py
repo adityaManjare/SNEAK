@@ -52,7 +52,6 @@ def tokenize(text : str):
 
 def buildIndex(db : Session):
     dictionary = {}
-    # doc_lengths = {}
     docs = db.query(Models.webPage).all()
     for doc in docs:
         text = doc.title + " " + doc.body
@@ -69,20 +68,7 @@ def buildIndex(db : Session):
             post.term_freq += 1
             post.positions.append(pos)
 
-    # with open("doc_lenghts.json" , "w") as file:
-    #     json.dump(doc_lengths,file)
     return dictionary
-
-
-
-
-
-# db = session_local()
-# try:
-#     dictionary = buildIndex(db)
-# finally:
-#     db.close()
-
 
 
 
@@ -90,11 +76,9 @@ def buildIndex(db : Session):
 def store_in_disk(dictionary):
     with open("postings.bin", "wb") as post_file:
         index = {}
-        history = {}
         for term in sorted(dictionary.keys()):
             offset = post_file.tell()
             index[term] = offset
-            # history[term] = 0
             postings = dictionary[term]
             post_file.write(struct.pack("I",len(postings)))
             for post in postings:
@@ -106,39 +90,3 @@ def store_in_disk(dictionary):
     with open("index.json","w") as file:
         json.dump(index,file)
 
-# store_in_disk(dictionary)
-# serializable = {
-#     term: [post.to_dict() for post in postings]
-#     for term, postings in dictionary.items()
-# }
-# with open("test.json","w") as file:
-#     json.dump(serializable,file,indent=4 )
-
-json_size = os.path.getsize("test.json")
-bin_size = os.path.getsize("postings.bin")
-# print(f"JSON Size   : {json_size / (1024 * 1024):.2f} MB")
-# print(f"Binary Size : {bin_size / (1024 * 1024):.2f} MB")
-# print(ind)
-# i had something as doc_lenghts json file which essentially was stroing the text length for each doc id and as per my implementation each url has a doc which has a doc id so should i genralize doc_len json file to store rank and outgoing links
-
-
-
-# def calc_wordFreq(body_text):
-#     word_arr = re.findall(r"\b[a-zA-Z]+\b", body_text)
-#     stemmer = PorterStemmer()
-#     word_freq = {}
-#     for word in word_arr:
-#         word = word.lower()
-#         word = stemmer.stem(word)
-#         if word not in helping_words:
-#             if word not in word_freq:
-#                 word_freq[word] = 0
-#             word_freq[word] += 1
-#     return word_freq
-
-
-
-# crawler -> sql lite -> indexing 
-                        # dictionary -> term - offset "location -> as json file "
-                        # posting -> binary file which will have our all the postings which we can fecth using offset
-                    

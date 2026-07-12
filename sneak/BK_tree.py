@@ -57,15 +57,8 @@ class BKTree:
 
 
 
-# import json
 
 
-# bk = BKTree()
- 
-# with open("index.json") as f:
-#     index = json.load(f)
 
-# for value , _ in index.items():
-#     bk.insert(value)
 
-# print(bk.search("sneha" , 3))
+

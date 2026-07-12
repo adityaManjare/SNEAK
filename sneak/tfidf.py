@@ -20,13 +20,10 @@ def rank_tfidf(query, candidate_docs , index , doc_lengths , total_docs):
             for posting in postings:
                 if candidate_docs is not None and posting.doc_id not in candidate_docs:
                     continue
-                # print("Posting doc_id: ", posting.doc_id)
-                # print("doc_lengths: ", doc_lengths)
                 tf = posting.term_freq / doc_lengths[posting.doc_id]
                 scores[posting.doc_id] += tf * idf
     return scores
 
-# print(tf_idf("hello my"))
 
 
 
