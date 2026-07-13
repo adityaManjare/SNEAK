@@ -61,7 +61,7 @@ def buildIndex(db : Session):
             if term not in dictionary:
                 dictionary[term] = []
             postings = dictionary[term]
-            if len(postings) == 0 or postings[-1] != doc.id: # you have to create a new post
+            if len(postings) == 0 or postings[-1].doc_id != doc.id: # you have to create a new post
                 new_post = Posting(doc.id )
                 postings.append(new_post)
             post = postings[-1]

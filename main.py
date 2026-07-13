@@ -24,15 +24,16 @@ def get_crawler(request : crawler_req , db : Session = Depends(database.get_db))
 
 
 @app.get("/search")
-def searchx(query: str):
-    results = search(query)
-    return {
-        "query": query,
-        "results": [
-            {"doc_id": doc_id, "score": score}
-            for doc_id, score in results
-        ]
-    }
+def searchx(query: str , db : Session = Depends(database.get_db)):
+    results = search(query , db)
+    # return {
+    #     "query": query,
+    #     "results": [
+    #         {"doc_id": doc_id, "score": score}
+    #         for doc_id, score in results
+    #     ]
+    # }
+    return results
 
 
 @app.get("/cache/stats")

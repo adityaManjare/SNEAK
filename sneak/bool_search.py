@@ -1,5 +1,5 @@
 from sneak.postings_reader import read_postings
-
+from sneak.index_builder import tokenize
 
 def bool_and(a ,b ): # here i a and b are lists 
     ans = []
@@ -84,7 +84,12 @@ def bool_search(query:str, index):
                 oprnd.append(c)
             oprtr.append(token)
         else:
-            a = [x.doc_id for x in read_postings(token,index)]
+            processed = tokenize(token)
+            if not processed:
+                oprnd.append([])
+                continue
+            term = processed[0]
+            a = [x.doc_id for x in read_postings(term,index)]
             oprnd.append(a)
     while oprtr:
         b = oprnd.pop()

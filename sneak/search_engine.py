@@ -6,6 +6,8 @@ from sneak.tfidf import rank_tfidf
 from sneak.cache import LRUCache
 from sneak.index_builder import tokenize
 from sneak.autocomplete import autocomplete
+from sqlalchemy.orm import Session
+import Models
 cache = LRUCache(1000)
 
 
@@ -27,7 +29,7 @@ def is_phrase_query(query):
 
 autocomp = autocomplete(4)
 
-def search(query):
+def search(query , db : Session):
     with open("index.json") as f:
         index = json.load(f)
 
@@ -68,18 +70,18 @@ def search(query):
     if not query:
         return []
 
-
-    if is_boolean_query(query):
+    if is_phrase_query(query):
+        phrase = query.replace('"', '')
+        docs = phrase_search(phrase, index)
+        scores =  rank_tfidf(phrase , docs ,index ,doc_lengths , total_docs)
+    
+    elif is_boolean_query(query):
         docs = bool_search(query, index)
         query = (
         query.replace("AND", " ").replace("OR", " ").replace("NOT", " "))
         scores = rank_tfidf(query , docs , index , doc_lengths , total_docs)
 
-    elif is_phrase_query(query):
-        phrase = query.replace('"', '')
-        docs = phrase_search(phrase, index)
-        scores =  rank_tfidf(phrase , docs ,index ,doc_lengths , total_docs)
-    
+
     else :
         scores = rank_tfidf(query, None ,index, doc_lengths, total_docs)
     
@@ -97,6 +99,16 @@ def search(query):
 
     results = sorted( scores.items(), key=lambda x: x[1], reverse=True ) # scores.items() returns (doc_id, score) tuples 
     cache.put(query, results)
-    return results
+    final_res = []
+    for doc_id , score in results:
+        doc = db.get(Models.webPage , doc_id)
+        final_res.append({
+            "document id " : doc_id,
+            "title " : doc.title,
+            "url " : doc.url,
+            "score " : score,
+            "body " : doc.body
+        })
+    return final_res
     
 
